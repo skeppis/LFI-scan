@@ -8,7 +8,8 @@ Local file inclusion (LFI) detection tool made in c++.
 `git clone git@github.com:skeppis/LFI-scan.git`
 
 ## Building
-`Make`
+`cd LFI-scan`
+`make`
 
 ## Usage
 `./LFI-scan -u http://www.example.com/ -w /path/to/wordlist`
