@@ -7,7 +7,7 @@
 #include <curl/curl.h>
 #include <unistd.h>
 
-bool validUrl(const std::string& url) {  // Pass by const reference
+bool validUrl(const std::string& url) {
     const std::regex urlRegex(R"(^(https?:\/\/)(([\da-z\.-]+)\.([a-z\.]{2,6})|(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}))(:\d{1,5})?(\/[\w\.-]*)*(\?[;&a-z\.-]*)?(#\w*)?$)");
 
     return std::regex_match(url, urlRegex);
@@ -31,32 +31,24 @@ bool validInput(char* const arg[], int count) {
     return true;
 }
 
-long sendRequest(const std::string &url) {
-    CURL* curl;
-    CURLcode res;
-    long code = 0;
-
-    curl = curl_easy_init();
-
-    if(curl) {
-	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-	curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
-	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-
-	// send HTTP GET request
-	res = curl_easy_perform(curl);
-
-	if(res != CURLE_OK) {
-	    std::cerr << "curl request failed: " << curl_easy_strerror(res) << std::endl;
-	}
-	else {
-	    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
-	}
-
-	curl_easy_cleanup(curl);
-    }
-    return code;
+size_t write_callback(char* ptr, size_t size, size_t nmemb, void* userdata){
+    // https://curl.se/libcurl/c/CURLOPT_WRITEFUNCTION.html
 }
+
+int performRequest(const CURL* c, const std::string& url, std::string& html){
+    CURLcode result;
+    curl_easy_setopt(c, CURLOPT_URL, url);
+    curl_easy_setopt(c, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(c, CURLOPT_WRITEDATA, html);
+
+    result = curl_easy_perform(c);
+
+    if(result == CURLE_OK) {
+    }
+}
+        
+
+    
 
 void printResult(const long &code, const std::string &payload) {
     std::string color = "\033[1;31m";
@@ -67,30 +59,42 @@ void printResult(const long &code, const std::string &payload) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc == 5 && validInput(argv, argc)) {
-	    std::string filename(argv[4]);
-	    std::string url(argv[2]);
+    if(argc != 5 || !validInput(argv, argc){
+        std::cout << "usage: ./LFI-scan -u [target url] -w [wordlist]" << std::endl;
+    }
 
-	    std::ifstream file(filename);
-	    std::string line;
-	    long responseCode;
+	std::string filename(argv[4]);
+	std::string url(argv[2]);
 
-	    while (std::getline(file, line)) {
-		std::string target = url + line;
+	std::ifstream file(filename);
+	std::string line;
+
+    CURL* curl = curl_easy_init();
+    std::string base_html;
+
+    if(!curl) {
+        std::cout << "something went wrong with curl..." << std::endl;
+        return 0;
+    }
+
+    // store default HTML for comparison
+    
+    if(performRequest(curl, url, base_html)){
+         
+
+	while (std::getline(file, line)) {
+        std::string target = url + line;
 
 		responseCode = sendRequest(target);
 
 		if(responseCode != 404) printResult(responseCode, target);
 
 		sleep(1);
-	    }
+	}
 
-	    file.close();
-         
-    }
-    else {
-        std::cout << "usage: ./LFI-scan -u [target url] -w [wordlist]" << std::endl;
-    }
+	file.close();
+    curl_easy_cleanup(curl);
+    
 
     return 0;
 }
