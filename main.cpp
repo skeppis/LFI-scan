@@ -1,3 +1,6 @@
+#ifndef MAIN_CPP
+#define MAIN_CPP
+
 #include <stdio.h>
 #include <iostream>
 #include <filesystem>
@@ -6,6 +9,7 @@
 #include <fstream>
 #include <curl/curl.h>
 #include <unistd.h>
+
 
 bool validUrl(const std::string& url) {
     const std::regex urlRegex(R"(^(https?:\/\/)(([\da-z\.-]+)\.([a-z\.]{2,6})|(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}))(:\d{1,5})?(\/[\w\.-]*)*(\?[;&a-z\.-]*)?(#\w*)?$)");
@@ -85,11 +89,7 @@ int main(int argc, char *argv[]) {
 	while (std::getline(file, line)) {
         std::string target = url + line;
 
-		responseCode = sendRequest(target);
-
-		if(responseCode != 404) printResult(responseCode, target);
-
-		sleep(1);
+	    // perform request with payload
 	}
 
 	file.close();
@@ -99,3 +99,4 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+#endif
